@@ -9,7 +9,7 @@ controller_url = f"http://{controller_ip}:{controller_port}"
 def update_ip_to_switch_mapping():
     global ip_to_switch_map
 
-    sw_dpid_ip= 'wm/core/controller/switches/json' 
+    sw_dpid_ip= '/wm/core/controller/switches/json' 
     headers = {'Content-type': 'application/json','Accept': 'application/json'}
     response = requests.get(url=controller_url, headers=headers)
 
