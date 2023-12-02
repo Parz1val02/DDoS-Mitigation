@@ -34,7 +34,8 @@ def get_switch_id_for_ip(ip_address):
 
 if __name__ == '__main__':
     update_ip_to_switch_mapping()
-    switch_id = get_switch_id_for_ip('192.168.200.201')
+    ip_address_to_lookup = "192.168.200.201"
+    switch_id = get_switch_id_for_ip(ip_address_to_lookup)
 
     if switch_id is not None:
         print(f"Switch ID for IP {ip_address_to_lookup}: {switch_id}")
