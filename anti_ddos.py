@@ -34,4 +34,4 @@ def get_switch_id_for_ip(ip_address):
 
 
 if __name__ == '__main__':
-    update_ip_to_switch_mapping
+    update_ip_to_switch_mapping()
