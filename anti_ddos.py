@@ -22,7 +22,8 @@ def update_ip_to_switch_mapping():
             connected_since = item['connectedSince']
             switch_dpid = item['switchDPID']
             print(f"InetAddress: {inet_address}, Connected Since: {connected_since}, Switch DPID: {switch_dpid}")
-            ip_to_switch_map[inet_address] = switch_dpid
+            ip_address = inet_address.split('/')[1].split(':')[0]
+            ip_to_switch_map[ip_address] = switch_dpid
     else:
         print(f"Error: {response.status_code}")
 
