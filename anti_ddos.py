@@ -47,46 +47,44 @@ def process_sflow_data(line):
 
                 # Command to run
                 curl_command = [
-                    'curl',
-                    '-X', 'DELETE',
-                    '-d', f'{"name":{flow_entry_name}}',
-                    api
+                'curl',
+                '-X', 'DELETE',
+                '-d', '{"name":"drop_traffic_from_host"}',
+                'http://localhost:8080/wm/staticflowpusher/json'
                 ]
-        
                 try:
                     # Run the curl command
                     subprocess.run(curl_command, check=True)
-                    print("Command executed successfully.")
+                    print(f"Threshold surpassed for {key}! DDoS detected!! Inserting flow entry in {agent_ip}...")
+                    switch_dpid = get_switch_id_for_ip(agent_ip)
+                    flow_entry = {
+                    "switch": switch_dpid,
+                    "name": flow_entry_name,
+                    "cookie": "0",
+                    "priority": "32768",
+                    "eth_type": "0x0800",  # IPv4
+                    "ipv4_src": src_ip,
+                    "idle_timeout": "15",
+                    "active": "true",
+                    "actions": "drop"  
+                    }
+
+                    response = requests.post(api, data=json.dumps(flow_entry))
+                    if response.status_code == 200:
+                        print("Flow entry inserted successfully.")
+                        # Reset the count after taking action
+                        request_counts[key] = 0
+                    else:
+                        print("Error inserting flow entry. Status code:", response.status_code)
+                        print("Response content:", response.content)
+                
+                    # Call your function to insert a flow entry here
+                    # insert_flow_entry(agent_ip, src_ip, dst_ip)
                 except subprocess.CalledProcessError as e:
                     print(f"Error executing command. Return code: {e.returncode}, Output: {e.output.decode()}")
                 except Exception as e:
                     print(f"An unexpected error occurred: {e}")
 
-                print(f"Threshold surpassed for {key}! DDoS detected!! Inserting flow entry in {agent_ip}...")
-                switch_dpid = get_switch_id_for_ip(agent_ip)
-                flow_entry = {
-                "switch": switch_dpid,
-                "name": flow_entry_name,
-                "cookie": "0",
-                "priority": "32768",
-                "eth_type": "0x0800",  # IPv4
-                "ipv4_src": src_ip,
-                "idle_timeout": "15",
-                "active": "true",
-                "actions": "drop"  
-                }
-
-                response = requests.post(api, data=json.dumps(flow_entry))
-                if response.status_code == 200:
-                    print("Flow entry inserted successfully.")
-                    # Reset the count after taking action
-                    request_counts[key] = 0
-                else:
-                    print("Error inserting flow entry. Status code:", response.status_code)
-                    print("Response content:", response.content)
-                
-                # Call your function to insert a flow entry here
-                # insert_flow_entry(agent_ip, src_ip, dst_ip)
 
         else:
             current_second = seconds
