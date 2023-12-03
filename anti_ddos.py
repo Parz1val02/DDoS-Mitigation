@@ -93,26 +93,26 @@ if __name__ == '__main__':
         # Command to run sflowtool with your desired arguments
         command = ["sflowtool", "-p", "6343", "-L", "localtime,agent,srcIP,dstIP"]
     
-        while true:
-            try:
-                # Run the command and capture the output stream
-                process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+        #while True:
+        try:
+            # Run the command and capture the output stream
+            process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
     
-                # Process the streaming output
-                for line in iter(process.stdout.readline, ''):
-                    # Process each line as it becomes available
-                    print(line, end='')
-                    process_sflow_data(line)
+            # Process the streaming output
+            for line in iter(process.stdout.readline, ''):
+                # Process each line as it becomes available
+                print(line, end='')
+                process_sflow_data(line)
 
     
-                # Wait for the process to complete
-                process.wait()
+            # Wait for the process to complete
+            process.wait()
     
-                # Check for errors
-                if process.returncode != 0:
-                    print(f"Error: {process.stderr.read()}")
+            # Check for errors
+            if process.returncode != 0:
+                print(f"Error: {process.stderr.read()}")
     
-            except Exception as e:
-                print(f"An error occurred: {e}")
+        except Exception as e:
+            print(f"An error occurred: {e}")
     else:
         print(f"No switch ID found for IP {ip_address_to_lookup}")
