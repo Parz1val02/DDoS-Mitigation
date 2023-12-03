@@ -53,7 +53,7 @@ def process_sflow_data(line):
                 "priority": "32768",
                 "eth_type": "0x0800",  # IPv4
                 "ipv4_src": src_ip,
-                "idle_timeout": "5",
+                "idle_timeout": "15",
                 "active": "true",
                 "actions": "drop"  
                 }
