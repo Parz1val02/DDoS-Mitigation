@@ -102,7 +102,7 @@ if __name__ == '__main__':
                 for line in iter(process.stdout.readline, ''):
                     # Process each line as it becomes available
                     print(line, end='')
-
+                    process_sflow_data(line)
 
     
                 # Wait for the process to complete
