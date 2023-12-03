@@ -47,7 +47,7 @@ def process_sflow_data(line):
                 ]
                 try:
                     # Run the curl command
-                    subprocess.run(curl_command, check=True)
+                    subprocess.run(curl_command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                     print(f"Threshold surpassed for {key}! DDoS detected!! Inserting flow entry in {agent_ip}...")
                     switch_dpid = get_switch_id_for_ip(agent_ip)
                     flow_entry = {
@@ -124,7 +124,7 @@ if __name__ == '__main__':
                 # Process the streaming output
             for line in iter(process.stdout.readline, ''):
                 # Process each line as it becomes available
-                print(line, end='')
+                #print(line, end='')
                 process_sflow_data(line)
             # Wait for the process to complete
             process.wait()
