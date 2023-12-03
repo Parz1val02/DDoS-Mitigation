@@ -1,11 +1,60 @@
 import requests
 import json
 import subprocess
+import time
+from collections import defaultdict
+from datetime import datetime
 
 ip_to_switch_map = {}
 controller_ip = "localhost"
 controller_port = "8080"
 controller_url = f"http://{controller_ip}:{controller_port}"
+
+
+# Threshold for the number of requests per second
+threshold = 5  # Adjust this based on your requirements
+
+# Dictionary to store counts for each (source IP, destination IP) pair
+request_counts = defaultdict(int)
+
+current_second = None
+
+def process_sflow_data(line):
+    global threshold, request_counts, current_second
+    try:
+        # Parse the sFlow data
+        timestamp_str, agent_ip, src_ip, dst_ip = map(str.strip, line.split(','))
+        # Parse the timestamp string
+        timestamp = datetime.strptime(timestamp_str, "%Y-%m-%dT%H:%M:%S%z")
+        # Extract the seconds
+        seconds = timestamp.second
+        #print(f"Timestamp: {timestamp_str}")
+        #print(f"Seconds: {seconds}")
+
+        # Calculate requests per second for each (source IP, destination IP) pair
+        if current_second is None:
+            current_second = seconds
+
+        if current_second == seconds:
+            key = (src_ip, dst_ip)
+            request_counts[key] += 1
+
+            # Check if the threshold is surpassed
+            if request_counts[key] > threshold:
+                print(f"Threshold surpassed for {key}! DDoS detected!! Inserting flow entry...")
+
+                # Call your function to insert a flow entry here
+                # insert_flow_entry(agent_ip, src_ip, dst_ip)
+
+                # Reset the count after taking action
+                request_counts[key] = 0
+        else:
+            current_second = seconds
+            request_counts.clear()
+
+    except ValueError as e:
+        print(f"Error processing line: {e}")
+
 
 # Function to update the global dictionary
 def update_ip_to_switch_mapping():
@@ -42,25 +91,28 @@ if __name__ == '__main__':
     if switch_id is not None:
         #print(f"Switch ID for IP {ip_address_to_lookup}: {switch_id}")
         # Command to run sflowtool with your desired arguments
-        command = ["sflowtool", "-p", "6343", "-L", "localtime,agent,srcMAC,dstMAC,srcIP,dstIP"]
+        command = ["sflowtool", "-p", "6343", "-L", "localtime,agent,srcIP,dstIP"]
     
-        try:
-            # Run the command and capture the output stream
-            process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+        while true:
+            try:
+                # Run the command and capture the output stream
+                process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
     
-            # Process the streaming output
-            for line in iter(process.stdout.readline, ''):
-                # Process each line as it becomes available
-                print(line, end='')
+                # Process the streaming output
+                for line in iter(process.stdout.readline, ''):
+                    # Process each line as it becomes available
+                    print(line, end='')
+
+
     
-            # Wait for the process to complete
-            process.wait()
+                # Wait for the process to complete
+                process.wait()
     
-            # Check for errors
-            if process.returncode != 0:
-                print(f"Error: {process.stderr.read()}")
+                # Check for errors
+                if process.returncode != 0:
+                    print(f"Error: {process.stderr.read()}")
     
-        except Exception as e:
-            print(f"An error occurred: {e}")
+            except Exception as e:
+                print(f"An error occurred: {e}")
     else:
         print(f"No switch ID found for IP {ip_address_to_lookup}")
