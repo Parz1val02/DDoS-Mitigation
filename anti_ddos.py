@@ -10,13 +10,10 @@ controller_ip = "localhost"
 controller_port = "8080"
 controller_url = f"http://{controller_ip}:{controller_port}"
 
-
 # Threshold for the number of requests per second
 threshold = 5  # Adjust this based on your requirements
-
 # Dictionary to store counts for each (source IP, destination IP) pair
 request_counts = defaultdict(int)
-
 current_second = None
 
 def process_sflow_data(line):
@@ -33,18 +30,14 @@ def process_sflow_data(line):
         seconds = timestamp.second
         #print(f"Timestamp: {timestamp_str}")
         #print(f"Seconds: {seconds}")
-
         # Calculate requests per second for each (source IP, destination IP) pair
         if current_second is None:
             current_second = seconds
-
         if current_second == seconds:
             key = (src_ip, dst_ip)
             request_counts[key] += 1
-
             # Check if the threshold is surpassed
             if request_counts[key] > threshold:
-
                 # Command to run
                 curl_command = [
                 'curl',
@@ -68,7 +61,6 @@ def process_sflow_data(line):
                     "active": "true",
                     "actions": "drop"  
                     }
-
                     response = requests.post(api, data=json.dumps(flow_entry))
                     if response.status_code == 200:
                         print("Flow entry inserted successfully.")
@@ -77,19 +69,15 @@ def process_sflow_data(line):
                     else:
                         print("Error inserting flow entry. Status code:", response.status_code)
                         print("Response content:", response.content)
-                
                     # Call your function to insert a flow entry here
                     # insert_flow_entry(agent_ip, src_ip, dst_ip)
                 except subprocess.CalledProcessError as e:
                     print(f"Error executing command. Return code: {e.returncode}, Output: {e.output.decode()}")
                 except Exception as e:
                     print(f"An unexpected error occurred: {e}")
-
-
         else:
             current_second = seconds
             request_counts.clear()
-
     except ValueError as e:
         print(f"Error processing line: {e}")
 
@@ -121,7 +109,6 @@ def get_switch_id_for_ip(ip_address):
     global ip_to_switch_map
     return ip_to_switch_map.get(ip_address, None)
 
-
 if __name__ == '__main__':
     update_ip_to_switch_mapping()
     ip_address_to_lookup = "192.168.200.201"
@@ -130,26 +117,20 @@ if __name__ == '__main__':
         #print(f"Switch ID for IP {ip_address_to_lookup}: {switch_id}")
         # Command to run sflowtool with your desired arguments
         command = ["sflowtool", "-p", "6343", "-L", "localtime,agent,srcIP,dstIP"]
-    
         #while True:
         try:
             # Run the command and capture the output stream
             process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
-    
-            # Process the streaming output
+                # Process the streaming output
             for line in iter(process.stdout.readline, ''):
                 # Process each line as it becomes available
                 print(line, end='')
                 process_sflow_data(line)
-
-    
             # Wait for the process to complete
             process.wait()
-    
-            # Check for errors
+                # Check for errors
             if process.returncode != 0:
                 print(f"Error: {process.stderr.read()}")
-    
         except Exception as e:
             print(f"An error occurred: {e}")
     else:
