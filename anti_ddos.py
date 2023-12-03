@@ -1,5 +1,7 @@
 import requests
 import json
+import subprocess
+
 ip_to_switch_map = {}
 controller_ip = "localhost"
 controller_port = "8080"
@@ -37,8 +39,29 @@ if __name__ == '__main__':
     update_ip_to_switch_mapping()
     ip_address_to_lookup = "192.168.200.201"
     switch_id = get_switch_id_for_ip(ip_address_to_lookup)
-
     if switch_id is not None:
         print(f"Switch ID for IP {ip_address_to_lookup}: {switch_id}")
     else:
         print(f"No switch ID found for IP {ip_address_to_lookup}")
+
+        # Command to run sflowtool with your desired arguments
+        command = ["sflowtool", "-p", "6343", "-L", "localtime,agent,srcMAC,dstMAC,srcIP,dstIP"]
+    
+        try:
+            # Run the command and capture the output stream
+            process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, bufsize=1, universal_newlines=True)
+    
+            # Process the streaming output
+            for line in iter(process.stdout.readline, ''):
+                # Process each line as it becomes available
+                print(line, end='')
+    
+            # Wait for the process to complete
+            process.wait()
+    
+            # Check for errors
+            if process.returncode != 0:
+                print(f"Error: {process.stderr.read()}")
+    
+        except Exception as e:
+            print(f"An error occurred: {e}")
