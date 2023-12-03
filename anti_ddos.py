@@ -41,7 +41,7 @@ def process_sflow_data(line):
 
             # Check if the threshold is surpassed
             if request_counts[key] > threshold:
-                print(f"Threshold surpassed for {key}! DDoS detected!! Inserting flow entry...")
+                print(f"Threshold surpassed for {key}! DDoS detected!! Inserting flow entry in {agent_ip}...")
                 switch_dpid = get_switch_id_for_ip(agent_ip)
                 static_flow_pusher= 'wm/staticflowpusher/json'
                 api = f"{controller_url}/{static_flow_pusher}"
