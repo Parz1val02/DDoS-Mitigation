@@ -20,7 +20,7 @@ request_counts = defaultdict(int)
 current_second = None
 
 def process_sflow_data(line):
-    global threshold, request_counts, current_second
+    global threshold, request_counts, current_second, controller_url
     try:
         # Parse the sFlow data
         timestamp_str, agent_ip, src_ip, dst_ip = map(str.strip, line.split(','))
@@ -42,12 +42,34 @@ def process_sflow_data(line):
             # Check if the threshold is surpassed
             if request_counts[key] > threshold:
                 print(f"Threshold surpassed for {key}! DDoS detected!! Inserting flow entry...")
+                switch_dpid = get_switch_id_for_ip(agent_ip)
+                static_flow_pusher= 'wm/staticflowpusher/json'
+                api = f"{controller_url}/{static_flow_pusher}"
+                flow_entry_name = "drop_traffic_from_host"
+                flow_entry = {
+                "switch": switch_dpid,
+                "name": flow_entry_name,
+                "cookie": "0",
+                "priority": "32768",
+                "eth_type": "0x0800",  # IPv4
+                "ipv4_src": src_ip,
+                "idle_timeout": "5",
+                "active": "true",
+                "actions": "drop"  
+                }
 
+                response = requests.post(api, data=json.dumps(flow_entry))
+                if response.status_code == 200:
+                    print("Flow entry inserted successfully.")
+                    # Reset the count after taking action
+                    request_counts[key] = 0
+                else:
+                    print("Error inserting flow entry. Status code:", response.status_code)
+                    print("Response content:", response.content)
+                
                 # Call your function to insert a flow entry here
                 # insert_flow_entry(agent_ip, src_ip, dst_ip)
 
-                # Reset the count after taking action
-                request_counts[key] = 0
         else:
             current_second = seconds
             request_counts.clear()
@@ -58,7 +80,7 @@ def process_sflow_data(line):
 
 # Function to update the global dictionary
 def update_ip_to_switch_mapping():
-    global ip_to_switch_map
+    global ip_to_switch_map, controller_url
     sw_dpid_ip= 'wm/core/controller/switches/json' 
     api = f"{controller_url}/{sw_dpid_ip}"
     headers = {'Content-type': 'application/json','Accept': 'application/json'}
