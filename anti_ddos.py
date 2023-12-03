@@ -46,7 +46,7 @@ if __name__ == '__main__':
     
         try:
             # Run the command and capture the output stream
-            process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, bufsize=1, universal_newlines=True)
+            process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
     
             # Process the streaming output
             for line in iter(process.stdout.readline, ''):
