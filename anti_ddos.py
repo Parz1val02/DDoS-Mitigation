@@ -21,6 +21,9 @@ current_second = None
 
 def process_sflow_data(line):
     global threshold, request_counts, current_second, controller_url
+    flow_entry_name = "drop_traffic_from_host"
+    static_flow_pusher= 'wm/staticflowpusher/json'
+    api = f"{controller_url}/{static_flow_pusher}"
     try:
         # Parse the sFlow data
         timestamp_str, agent_ip, src_ip, dst_ip = map(str.strip, line.split(','))
@@ -41,11 +44,26 @@ def process_sflow_data(line):
 
             # Check if the threshold is surpassed
             if request_counts[key] > threshold:
+
+                # Command to run
+                curl_command = [
+                    'curl',
+                    '-X', 'DELETE',
+                    '-d', f'{"name":{flow_entry_name}}',
+                    api
+                ]
+        
+                try:
+                    # Run the curl command
+                    subprocess.run(curl_command, check=True)
+                    print("Command executed successfully.")
+                except subprocess.CalledProcessError as e:
+                    print(f"Error executing command. Return code: {e.returncode}, Output: {e.output.decode()}")
+                except Exception as e:
+                    print(f"An unexpected error occurred: {e}")
+
                 print(f"Threshold surpassed for {key}! DDoS detected!! Inserting flow entry in {agent_ip}...")
                 switch_dpid = get_switch_id_for_ip(agent_ip)
-                static_flow_pusher= 'wm/staticflowpusher/json'
-                api = f"{controller_url}/{static_flow_pusher}"
-                flow_entry_name = "drop_traffic_from_host"
                 flow_entry = {
                 "switch": switch_dpid,
                 "name": flow_entry_name,
