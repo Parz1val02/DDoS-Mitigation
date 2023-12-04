@@ -126,8 +126,6 @@ def run_detection():
                 # Terminate the sflowtool process after the specified duration
                 process.terminate()
                 break
-        # Wait for the process to complete
-        process.wait()
         # Check for errors
         if process.returncode != 0:
             print(f"Error: {process.stderr.read()}")
