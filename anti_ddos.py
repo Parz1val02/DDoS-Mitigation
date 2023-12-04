@@ -129,7 +129,7 @@ if __name__ == '__main__':
                 # Process the streaming output
             for line in iter(process.stdout.readline, ''):
                 # Process each line as it becomes available
-                #print(line, end='')
+                print(line, end='')
                 process_sflow_data(line)
             # Wait for the process to complete
             process.wait()
