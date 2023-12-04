@@ -13,7 +13,7 @@ controller_port = "8080"
 controller_url = f"http://{controller_ip}:{controller_port}"
 
 # Threshold for the number of requests per second
-threshold = 5  # Adjust this based on your requirements
+threshold = 20  # Adjust this based on your requirements
 # Dictionary to store counts for each (source IP, destination IP) pair
 request_counts = defaultdict(int)
 RUN_DURATION_SECONDS = 10  # Adjust the duration as needed
@@ -123,28 +123,31 @@ def run_detection():
             process_sflow_data(line)
             # Check if the duration has exceeded RUN_DURATION_SECONDS
             if (datetime.now() - start_time).total_seconds() >= RUN_DURATION_SECONDS:
+                print("Reinicio de deteccion")
+                request_counts.clear()
+                start_time = datetime.now()
                 # Terminate the sflowtool process after the specified duration
-                process.terminate()
-                break
+                #process.terminate()
+                #break
         # Check for errors
         if process.returncode != 0:
             print(f"Error: {process.stderr.read()}")
     except Exception as e:
         print(f"An error occurred: {e}")
     # Clear request_counts after the sflowtool process ends
-    request_counts.clear()
+    #request_counts.clear()
 
-def run_detection_in_thread():
-    while True:
-        # Create a ThreadPoolExecutor with max_workers=1 (one thread at a time)
-        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
-            print("Nuevo hilo")
-            # Submit the run_detection function to the executor
-            future = executor.submit(run_detection)
-            # Wait for the thread to finish
-            future.result()
-            # Sleep for a brief period before starting the next thread
-            time.sleep(1)
+#def run_detection_in_thread():
+#    while True:
+#        # Create a ThreadPoolExecutor with max_workers=1 (one thread at a time)
+#        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+#            print("Nuevo hilo")
+#            # Submit the run_detection function to the executor
+#            future = executor.submit(run_detection)
+#            # Wait for the thread to finish
+#            future.result()
+#            # Sleep for a brief period before starting the next thread
+#            time.sleep(1)
 
 if __name__ == '__main__':
     update_ip_to_switch_mapping()
@@ -152,15 +155,16 @@ if __name__ == '__main__':
     switch_id = get_switch_id_for_ip(ip_address_to_lookup)
     if switch_id is not None:
         #print(f"Switch ID for IP {ip_address_to_lookup}: {switch_id}")
+        run_detection()
         # Start the thread that runs run_detection
-        detection_thread = threading.Thread(target=run_detection_in_thread)
-        detection_thread.start()
-        # Keep the main thread (and program) alive
-        try:
-            while True:
-                time.sleep(1)
-        except KeyboardInterrupt:
-            # Allow the program to be terminated with Ctrl+C
-            detection_thread.join()
+        #detection_thread = threading.Thread(target=run_detection_in_thread)
+        #detection_thread.start()
+        ## Keep the main thread (and program) alive
+        #try:
+        #    while True:
+        #        time.sleep(1)
+        #except KeyboardInterrupt:
+        #    # Allow the program to be terminated with Ctrl+C
+        #    detection_thread.join()
     else:
         print(f"No switch ID found for IP {ip_address_to_lookup}")
