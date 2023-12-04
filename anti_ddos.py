@@ -22,6 +22,7 @@ def process_sflow_data(line):
     static_flow_pusher= 'wm/staticflowpusher/json'
     api = f"{controller_url}/{static_flow_pusher}"
     try:
+        arch = False
         # Parse the sFlow data
         timestamp_str, agent_ip, src_ip, dst_ip = map(str.strip, line.split(','))
         # Parse the timestamp string
@@ -35,9 +36,13 @@ def process_sflow_data(line):
             current_second = seconds
         if current_second == seconds:
             key = (src_ip, dst_ip)
-            request_counts[key] += 1
+            key_inverse = (dst_ip, src_ip)
+            if key_inverse in request_counts:
+                request_counts[key_inverse] += 1
+            else:
+                request_counts[key] += 1
             # Check if the threshold is surpassed
-            if request_counts[key] > threshold:
+            if (request_counts.get(key) is not None and request_counts.get(key)> threshold) or (request_counts.get(key_inverse) is not None and request_counts.get(key_inverse) > threshold):
                 # Command to run
                 curl_command = [
                 'curl',
