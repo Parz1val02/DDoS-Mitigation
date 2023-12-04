@@ -13,10 +13,10 @@ controller_port = "8080"
 controller_url = f"http://{controller_ip}:{controller_port}"
 
 # Threshold for the number of requests per second
-threshold = 20  # Adjust this based on your requirements
+threshold = 25  # Adjust this based on your requirements
 # Dictionary to store counts for each (source IP, destination IP) pair
 request_counts = defaultdict(int)
-RUN_DURATION_SECONDS = 10  # Adjust the duration as needed
+RUN_DURATION_SECONDS = 12  # Adjust the duration as needed
 
 def process_sflow_data(line):
     global threshold, request_counts, controller_url
