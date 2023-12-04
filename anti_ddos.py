@@ -138,6 +138,7 @@ def run_detection_in_thread():
     while True:
         # Create a ThreadPoolExecutor with max_workers=1 (one thread at a time)
         with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+            print("Nuevo hilo")
             # Submit the run_detection function to the executor
             future = executor.submit(run_detection)
             # Wait for the thread to finish
