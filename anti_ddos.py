@@ -33,6 +33,8 @@ def process_sflow_data(line):
         #print(f"Timestamp: {timestamp_str}")
         #print(f"Seconds: {seconds}")
         # Calculate requests per second for each (source IP, destination IP) pair
+        key = (src_ip, dst_ip)
+        key_inverse = (dst_ip, src_ip)
         if key_inverse in request_counts:
             request_counts[key_inverse] += 1
         else:
