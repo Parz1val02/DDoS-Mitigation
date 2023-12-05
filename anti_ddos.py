@@ -126,7 +126,7 @@ def run_detection():
         # Process the streaming output
         for line in iter(process.stdout.readline, ''):
             # Process each line as it becomes available
-            print(line, end='')
+            #print(line, end='')
             process_sflow_data(line, start_time)
             # Check if the duration has exceeded RUN_DURATION_SECONDS
             if (datetime.now() - start_time).total_seconds() >= RUN_DURATION_SECONDS:
