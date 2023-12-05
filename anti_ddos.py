@@ -41,6 +41,10 @@ def process_sflow_data(line):
             request_counts[key] += 1
         # Check if the threshold is surpassed
         if (request_counts.get(key) is not None and request_counts.get(key)> threshold) or (request_counts.get(key_inverse) is not None and request_counts.get(key_inverse) > threshold):
+            print("######################################")
+            print(f"Threshold surpassed for {key}! DDoS detected!! Inserting flow entry in {agent_ip}...")
+            print("Detection time: " + datetime.now() - start_time.total_seconds())
+            print("######################################")
             # Command to run
             curl_command = [
             'curl',
@@ -51,7 +55,6 @@ def process_sflow_data(line):
             try:
                 # Run the curl command
                 subprocess.run(curl_command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                print(f"Threshold surpassed for {key}! DDoS detected!! Inserting flow entry in {agent_ip}...")
                 switch_dpid = get_switch_id_for_ip(agent_ip)
                 flow_entry = {
                 "switch": switch_dpid,
@@ -69,6 +72,9 @@ def process_sflow_data(line):
                     print("Flow entry inserted successfully.")
                     # Reset the count after taking action
                     request_counts[key] = 0
+                    print("######################################")
+                    print("Mitigation time: " + datetime.now() - start_time.total_seconds())
+                    print("######################################")
                 else:
                     print("Error inserting flow entry. Status code:", response.status_code)
                     print("Response content:", response.content)
