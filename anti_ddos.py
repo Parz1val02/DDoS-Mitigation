@@ -12,13 +12,14 @@ controller_ip = "localhost"
 controller_port = "8080"
 controller_url = f"http://{controller_ip}:{controller_port}"
 
+
 # Threshold for the number of requests per second
 threshold = 25  # Adjust this based on your requirements
 # Dictionary to store counts for each (source IP, destination IP) pair
 request_counts = defaultdict(int)
 RUN_DURATION_SECONDS = 12  # Adjust the duration as needed
 
-def process_sflow_data(line):
+def process_sflow_data(line, start_time):
     global threshold, request_counts, controller_url
     flow_entry_name = "drop_traffic_from_host"
     static_flow_pusher= 'wm/staticflowpusher/json'
@@ -126,7 +127,7 @@ def run_detection():
         for line in iter(process.stdout.readline, ''):
             # Process each line as it becomes available
             print(line, end='')
-            process_sflow_data(line)
+            process_sflow_data(line, start_time)
             # Check if the duration has exceeded RUN_DURATION_SECONDS
             if (datetime.now() - start_time).total_seconds() >= RUN_DURATION_SECONDS:
                 print("Reinicio de deteccion")
